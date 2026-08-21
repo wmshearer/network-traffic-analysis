@@ -1,9 +1,9 @@
 # Network Traffic Analysis
 
-Six investigations that read intent from packet captures. Each one takes a real
+Nine investigations that read intent from packet captures. Each one takes a real
 capture, asks a specific question of it with `tshark`, and writes a detection or
 a finding that stands on the evidence rather than on a signature list. The common
-thread across all six: what a protocol *does* on the wire is visible even when its
+thread: what a protocol *does* on the wire is visible even when its
 contents are encrypted, and the shape of that behaviour is often enough to separate
 ordinary traffic from something worth a closer look.
 
@@ -21,6 +21,9 @@ Written up as case studies at **[wshearer.com](https://wshearer.com)**.
 | [rdp-exploit-analysis](rdp-exploit-analysis/) | How do you spot an RDP exploit when the exploit itself is inside the encrypted tunnel? | SANS ISC BlueKeep set | 8 |
 | [scan-detection](scan-detection/) | How do you catch a network scanner by what never answered it? | CTU-13 rbot botnet | 12 |
 | [ad-attack-detection](ad-attack-detection/) | How does an intruder moving through a Windows domain look on the wire, when every step is a normal protocol call? | AD attack lab captures | 29 |
+| [smb-exploit-analysis](smb-exploit-analysis/) | What does an SMB exploit look like when you only have the packets? | SANS ISC EternalBlue set | 11 |
+| [iot23-botnet-analysis](iot23-botnet-analysis/) | Do readable rules hold up when scored against published ground-truth labels? | CTU IoT-23 | 9 |
+| [doh-tunneling-detection](doh-tunneling-detection/) | Can you catch a tunnel hidden inside encrypted DNS, without decrypting it? | CIRA-CIC-DoHBrw-2020 | 43 |
 
 ## The six, in more detail
 
@@ -60,6 +63,22 @@ Windows protocol call: DCSync (a directory-replication pull from a host that is 
 domain controller), SPN discovery, manual LDAP recon, and SAMR enumeration of Domain
 Admins. Every capture was verified packet-by-packet before use, which caught a file
 whose name claimed Kerberoasting but held zero Kerberos traffic.
+
+**smb-exploit-analysis** — EternalBlue on the wire, read from the SANS ISC capture:
+the oversized transaction request and the sequence of writes that follow, described
+by what the packets do rather than by a signature string.
+
+**iot23-botnet-analysis** — Readable rules scored against CTU IoT-23's own published
+labels, so the score is measured against ground truth rather than asserted.
+
+**doh-tunneling-detection** — DNS-over-HTTPS hides the query inside TLS, so payload
+inspection is off the table and only traffic shape is left: packet sizes, timing,
+duration, byte rates. The useful result here is a negative one. The benign and
+malicious captures in the public dataset were recorded as separate sessions on
+separate machines, so client IP alone nearly separates the classes, and a "year of
+capture" feature scores 100% accuracy on its own while learning nothing about
+tunneling. The model is restricted to behavioural features, the leaky columns are
+unreachable from the feature matrix by construction, and a test enforces it.
 
 ## Running any project
 
