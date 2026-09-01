@@ -187,3 +187,21 @@ sibling project. Details in `docs/sources.md`.
   beacon scorer from scratch and ran it against CTU-13, arriving independently at
   the same MAD-based approach RITA uses. This study measures the published tool
   instead of reimplementing it.
+
+## Reproducing from scratch
+
+The Zeek logs are not committed (a few hundred MB). To rebuild:
+
+```
+mkdir -p data/zeek && cd data/zeek
+for f in delay_var_d10_j25 delay_var_d30_j25 delay_var_d300_j25 \
+         jit_var_d30_j0 jit_var_d30_j10 jit_var_d30_j99 \
+         random_d30_j0 random_d30_j25 round_rob_d30_j25; do
+  curl -sS -O "https://acm-motd.s3.amazonaws.com/${f}_zeek_logs.zip"
+done
+sha256sum -c ../SHA256SUMS.published
+```
+
+Each archive nests a 1-hour and a 24-hour zip one level down, so extract twice
+into `data/logs/<name>_1H/` and `data/logs/<name>_24H/`. Then run
+`scripts/import_all.sh`.
