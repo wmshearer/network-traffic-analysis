@@ -120,9 +120,13 @@ to be **half right and worth correcting**:
 So "GREASE present" is not a universal browser signal, it's a
 **Chromium-family signal**. A detector that treats GREASE-absence as
 "this is a script" will incorrectly flag every real Firefox connection
-too. That correction is the headline result of this test, and it
-matches what the task specified as an untested hypothesis worth
-measuring rather than citing.
+too.
+
+That matters because the claim is repeated confidently across a lot of
+industry writing, and it does not appear in RFC 8701, in FoxIO's JA4
+spec, or in any vendor documentation found while researching this.
+Measuring it took one afternoon and one browser. Firefox alone is
+enough to show the rule as commonly stated is wrong.
 
 ## Question 4: how much of JA4 can stock Python `ssl` actually control?
 
@@ -193,6 +197,42 @@ JA4 alone would miss this; that's presumably why the same detection
 literature that recommends JA4 also recommends stacking it with
 order-sensitive signals like HTTP/2 SETTINGS frame order or HTTP
 header order, which are not covered by this project.
+
+## Extra finding: one Chromium, two connections, two different JA3 values
+
+The order test above was built on purpose to prove the sorting point.
+The same thing showed up on its own, unprompted, in the plain Chromium
+capture, which is better evidence because nothing was staged to
+produce it.
+
+A single Chromium session opened two connections during one capture.
+The two ClientHellos it sent were not identical:
+
+```
+ClientHello 1   JA3 f3d2f101dd5bbeea457b4bc55913fcb1   JA4 t13i1515h2_8daaf6152771_806a8c22fdea
+ClientHello 2   JA3 eff9cced34ebaf06e0b64dca70a2d751   JA4 t13i1515h2_8daaf6152771_806a8c22fdea
+```
+
+Two different JA3 values. One JA4, identical. Firefox, for contrast,
+produced the same JA3 and the same JA4 on all three of its
+connections in its own capture.
+
+This is Chrome's extension order randomization, caught live rather
+than cited from a blog post. It is the reason JA4 sorts at all. It
+also means the two fingerprints answer different questions on the same
+traffic:
+
+- **JA3 would treat one browser as two clients.** Blocking or counting
+  by JA3 splits a single Chrome user across as many identities as it
+  has connections.
+- **JA4 treats them as one**, which is what an analyst wants here.
+
+The tradeoff runs in both directions, and this capture shows both
+sides of it in one file. Sorting is what makes JA4 stable enough to
+recognize a real browser, and sorting is also what let `curl_cffi`
+match that browser exactly in the next section. The property that
+fixes the false split is the same property that permits the
+impersonation.
 
 ## Extra finding not in the original question list: curl_cffi can hit an exact JA4 match
 
